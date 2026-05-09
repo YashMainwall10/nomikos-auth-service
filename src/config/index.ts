@@ -31,6 +31,10 @@ export const config = {
     url: process.env.FRONTEND_URL || "http://localhost:3000",
   },
 
+  corsOrigins: (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map(s => s.trim()),
+
   cookie: {
     domain: process.env.COOKIE_DOMAIN || "localhost",
     secret: process.env.COOKIE_SECRET || "dev-cookie-secret-change-in-prod!!",

@@ -15,7 +15,14 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: config.frontend.url,
+    origin: (origin, callback) => {
+      if (!origin || config.corsOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logger.warn("CORS request rejected", { origin, allowedOrigins: config.corsOrigins });
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
@@ -50,6 +57,10 @@ app.listen(config.port, () => {
     port: config.port,
     env: config.env,
     frontendUrl: config.frontend.url,
+    corsOrigins: config.corsOrigins,
+    cookieDomain: config.cookie.domain,
+    cookieSecure: config.cookie.secure,
+    cookieSameSite: config.cookie.sameSite,
   });
 });
 

@@ -244,6 +244,9 @@ export async function getMe(
   const accessToken = req.cookies?.auth_access_token;
 
   if (!accessToken) {
+    logger.warn("getMe called without access token", {
+      cookies: Object.keys(req.cookies || {}),
+    });
     res.status(401).json({
       success: false,
       error: "Not authenticated",
@@ -254,6 +257,7 @@ export async function getMe(
   const user = await authService.getUserFromToken(accessToken);
 
   if (!user) {
+    logger.warn("getMe called with invalid token");
     res.status(401).json({
       success: false,
       error: "Invalid session",
@@ -331,6 +335,9 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     res.json(response);
   } catch (error) {
+    logger.warn("Session refresh failed", {
+      error: (error as Error).message,
+    });
     clearAuthCookies(res);
     throw new AppError(401, "Session expired. Please log in again.");
   }
