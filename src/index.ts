@@ -7,7 +7,7 @@ import routes from "./routes";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 import { httpLogger, logger } from "./utils/logger";
 
-const app = express();
+const app: express.Application = express();
 
 // Security headers
 app.use(helmet());

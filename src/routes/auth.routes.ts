@@ -3,7 +3,7 @@ import * as authController from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth";
 import { validateBody, validateEmail, validatePassword } from "../middleware/validate";
 
-const router = Router();
+const router: Router = Router();
 
 // OAuth routes
 router.get("/google", authController.initiateGoogleOAuth);

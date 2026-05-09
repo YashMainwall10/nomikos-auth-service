@@ -12,7 +12,7 @@ try {
 }
 
 const getRealtimeConfig = () => {
-  if (wsModule && typeof window === 'undefined') {
+  if (wsModule) {
     return {
       transport: wsModule,
     };
