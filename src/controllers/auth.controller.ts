@@ -41,7 +41,7 @@ export async function initiateGoogleOAuth(
     res.cookie(PKCE_COOKIE, codeVerifier, {
       httpOnly: true,
       secure: config.cookie.secure,
-      sameSite: "lax", // Must be lax for cross-site redirect to send it back
+      sameSite: config.cookie.sameSite,
       path: "/",
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
@@ -52,12 +52,16 @@ export async function initiateGoogleOAuth(
 
     // Use redirect_to from query param (passed by frontend), fallback to config
     const redirectTo = req.query.redirect_to as string || `${config.frontend.url}/auth/callback`;
-    authUrl.searchParams.set("redirect_to", `${redirectTo}/auth/callback`);
+    authUrl.searchParams.set("redirect_to", redirectTo);
 
     authUrl.searchParams.set("code_challenge", codeChallenge);
     authUrl.searchParams.set("code_challenge_method", "S256");
 
-    logger.info("Initiating Google OAuth with PKCE");
+    logger.info("Initiating Google OAuth with PKCE", {
+      redirectTo,
+      codeVerifierHash: codeVerifier.slice(0, 8) + "...",
+      sameSite: config.cookie.sameSite,
+    });
 
     res.redirect(authUrl.toString());
   } catch (error) {
@@ -85,6 +89,8 @@ export async function exchangeCode(
       hasCode: !!code,
       hasCodeVerifier: !!codeVerifier,
       cookies: Object.keys(req.cookies || {}),
+      origin: req.headers.origin,
+      ip: req.ip,
     });
 
     if (!code) {
@@ -105,7 +111,7 @@ export async function exchangeCode(
     res.clearCookie(PKCE_COOKIE, {
       httpOnly: true,
       secure: config.cookie.secure,
-      sameSite: "lax",
+      sameSite: config.cookie.sameSite,
       path: "/",
     });
 
@@ -125,7 +131,7 @@ export async function exchangeCode(
     res.clearCookie(PKCE_COOKIE, {
       httpOnly: true,
       secure: config.cookie.secure,
-      sameSite: "lax",
+      sameSite: config.cookie.sameSite,
       path: "/",
     });
 

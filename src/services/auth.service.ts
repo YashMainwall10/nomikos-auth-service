@@ -28,6 +28,11 @@ export async function exchangeCodeForSession(
   // Call Supabase token endpoint directly with our code_verifier
   const tokenUrl = `${config.supabase.url}/auth/v1/token?grant_type=pkce`;
 
+  logger.info("Exchanging OAuth code for session", {
+    codeLength: code.length,
+    codeVerifierHash: codeVerifier.slice(0, 8) + "...",
+  });
+
   const response = await fetch(tokenUrl, {
     method: "POST",
     headers: {
@@ -126,6 +131,8 @@ export async function signInWithEmail(
     throw new Error("No session returned from sign-in");
   }
 
+  logger.info("Email sign-in successful", { userId: data.user.id, email });
+
   return {
     accessToken: data.session.access_token,
     refreshToken: data.session.refresh_token,
@@ -154,12 +161,15 @@ export async function signUpWithEmail(
   });
 
   if (error) {
+    logger.error("Email sign-up failed", { error: error.message, email });
     throw new Error(error.message);
   }
 
   if (!data.session || !data.user) {
     throw new Error("No session returned from signup");
   }
+
+  logger.info("Email sign-up successful", { userId: data.user.id, email });
 
   return {
     accessToken: data.session.access_token,
@@ -196,6 +206,8 @@ export async function refreshSession(refreshToken: string): Promise<AuthTokens> 
   if (!data.session || !data.user) {
     throw new Error("No session returned from refresh");
   }
+
+  logger.info("Session refreshed successfully", { userId: data.user.id });
 
   return {
     accessToken: data.session.access_token,
@@ -288,8 +300,14 @@ export async function signOut(accessToken: string): Promise<void> {
   const supabase = getSupabaseAdmin();
 
   // Use admin to sign out the user's session
-  const { data } = await getSupabaseClient(accessToken).auth.getUser();
-  if (data.user) {
+  const { data, error } = await getSupabaseClient(accessToken).auth.getUser();
+  if (error) {
+    logger.warn("Sign out: could not get user from token", { error: error.message });
+  }
+  if (data?.user) {
     await supabase.auth.admin.signOut(accessToken);
+    logger.info("User signed out", { userId: data.user.id });
+  } else {
+    logger.info("Sign out called without a valid user session");
   }
 }

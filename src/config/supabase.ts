@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { config } from "./index";
+import { logger } from "../utils/logger";
 
 let supabaseAdmin: SupabaseClient | null = null;
 
@@ -25,6 +26,9 @@ const getRealtimeConfig = () => {
  */
 export function getSupabaseAdmin(): SupabaseClient {
   if (!supabaseAdmin) {
+    logger.info("Initializing Supabase admin client", {
+      supabaseUrl: config.supabase.url,
+    });
     supabaseAdmin = createClient(config.supabase.url, config.supabase.serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -41,6 +45,9 @@ export function getSupabaseAdmin(): SupabaseClient {
  * Uses PKCE flow type for OAuth code exchange.
  */
 export function getSupabaseClient(accessToken?: string): SupabaseClient {
+  logger.debug("Creating Supabase client", {
+    hasAccessToken: !!accessToken,
+  });
   return createClient(config.supabase.url, config.supabase.anonKey, {
     auth: {
       autoRefreshToken: false,

@@ -39,7 +39,7 @@ export const config = {
     domain: process.env.COOKIE_DOMAIN || "localhost",
     secret: process.env.COOKIE_SECRET || "dev-cookie-secret-change-in-prod!!",
     secure: process.env.NODE_ENV === "production",
-    sameSite: (process.env.NODE_ENV === "production" ? "strict" : "lax") as
+    sameSite: (process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === "production" ? "none" : "lax")) as
       | "strict"
       | "lax"
       | "none",
