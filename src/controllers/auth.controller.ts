@@ -50,8 +50,11 @@ export async function initiateGoogleOAuth(
     const authUrl = new URL(`${config.supabase.url}/auth/v1/authorize`);
     authUrl.searchParams.set("provider", "google");
 
-    // Use redirect_to from query param (passed by frontend), fallback to config
-    const redirectTo = req.query.redirect_to as string || `${config.frontend.url}/auth/callback`;
+    // Use redirect_to from query param (frontend origin), fallback to config
+    const redirectToOrigin = req.query.redirect_to as string;
+    const redirectTo = redirectToOrigin
+      ? `${redirectToOrigin}/auth/callback`
+      : `${config.frontend.url}/auth/callback`;
     authUrl.searchParams.set("redirect_to", redirectTo);
 
     authUrl.searchParams.set("code_challenge", codeChallenge);
@@ -59,6 +62,8 @@ export async function initiateGoogleOAuth(
 
     logger.info("Initiating Google OAuth with PKCE", {
       redirectTo,
+      redirectToOrigin: req.query.redirect_to,
+      finalRedirectTo: redirectTo,
       codeVerifierHash: codeVerifier.slice(0, 8) + "...",
       sameSite: config.cookie.sameSite,
     });
